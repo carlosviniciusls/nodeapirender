@@ -35,4 +35,26 @@ router.post('/reservar_livro', async (req, res) => {
   }
 });
 
+// Cancelar reserva
+router.post('/cancelar_reserva', async (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ erro: 'ID do livro é obrigatório' });
+
+  try {
+    const [result] = await pool.query(
+      'UPDATE livros SET status = ? WHERE id = ? AND status = ?',
+      ['disponivel', id, 'reservado']
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ erro: 'Livro não encontrado ou já disponível' });
+    }
+
+    res.json({ mensagem: 'Reserva cancelada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao cancelar reserva:', error);
+    res.status(500).json({ erro: 'Erro ao cancelar reserva' });
+  }
+});
+
 module.exports = router;
